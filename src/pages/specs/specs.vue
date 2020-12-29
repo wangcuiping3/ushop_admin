@@ -5,20 +5,10 @@
     <el-button type="primary" @click="willAdd">添加</el-button>
 
     <!-- 管理员列表页 -->
-    <specs-list :specsList="specsList" @init="init" @edit="edit($event)"></specs-list>
+    <specs-list   @edit="edit($event)"></specs-list>
     <!-- 管理员添加页 -->
-    <specs-add :info="info" @init="init" :specsList="specsList" ref="add"></specs-add>
+    <specs-add :info="info"  ref="add"></specs-add>
 
-    <!-- 列表的分页 -->
-    <!-- current-change	currentPage 改变时会触发 -->
-    <el-pagination
-      background
-      layout="prev, pager, next"
-      :total="total"
-      :page-size="pageSize"
-      @current-change="changePage"
-    >
-    </el-pagination>
   </div>
 </template>
 
@@ -27,7 +17,6 @@
 import specsList from "./components/specsList";
 import specsAdd from "./components/specsAdd";
 
-import { reqSpecsList, reqSpecsTotal } from "../../utils/http";
 export default {
   // 注册组件
   components: {
@@ -42,17 +31,9 @@ export default {
         // 判断点的是"添加"的取消,还是"编辑"取消
         isAdd:true
       },
-      // 初始化列表数据
-      specsList: [],
-
-      // 数据总数量
-      total: 0,
-      // 一页展示的数据
-      pageSize: 3,
-      // 当前页码
-      page: 1,
     };
   },
+ 
   methods: {
     // 点击'添加'按钮
     willAdd() {
@@ -61,39 +42,7 @@ export default {
       // isAdd设为true
       this.info.isAdd=true
     },
-    // 获取总数
-    getTotal() {
-      reqSpecsTotal().then((res) => {
-        this.total = res.data.list[0].total;
-      });
-    },
-    // 数据发生改变 就重新获取列表数据 刷新页面
-    getSpecsList() {
-      reqSpecsList({size:this.pageSize,page:this.page}).then((res) => {
-        if (res.data.code == 200) {
-          // 如果删除了最后一页的最后一条数据,则当前页就是[],并且如果还有上一页,就展示上一页的数据
-          if(res.data.list.length==0&&this.page>0){
-            // 页码减少
-            this.page--
-            // 重新获取数据
-            this.getSpecsList()
-          }
-          this.specsList=res.data.list
-        }
-      });
-    },
-    // 点击页码 发生改变
-    changePage(ev){
-      // console.log(ev);
-      this.page=ev
-      // 页码改变,重新获取列表数据
-      this.getSpecsList()
-    },
-    //获取总数和列表数据封装调用
-    init() {
-      this.getTotal();
-      this.getSpecsList();
-    },
+    
     // 接收list的edit事件
     edit(id){
       // add页面出现
@@ -104,10 +53,7 @@ export default {
       this.info.isAdd=false
     }
   },
-  mounted() {
-    // 页面一加载,就获取数据
-    this.init()
-  },
+
 };
 </script>
 

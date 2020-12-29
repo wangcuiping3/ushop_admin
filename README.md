@@ -1,21 +1,24 @@
-# ushop_admin
+### ushop_admin项目进度说明:
 
-> A Vue.js project
+#### 项目目录:
 
-## Build Setup
+##### 菜单管理 : menu   完成
 
-``` bash
-# install dependencies
-npm install
+##### 角色管理: role  完成
 
-# serve with hot reload at localhost:8080
-npm run dev
+##### 管理员管理 : manage 完成
 
-# build for production with minification
-npm run build
+##### 商品分类管理 : cate 完成
 
-# build for production and view the bundle analyzer report
-npm run build --report
-```
+##### 商品规格管理 : specs 完成
 
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+##### 商品管理 : goodsmanage  进行中
+
+##### 会员管理 : member 完成
+
+##### 轮播图管理 : banner 完成
+
+##### 限时秒杀管理 : seckill 未完成  
+
+
+

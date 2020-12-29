@@ -1,65 +1,102 @@
 
 // 引入http请求
-import {reqSpecsList} from "../../utils/http"
+import { reqSpecsList, reqSpecsTotal } from "../../utils/http"
 // 数据
-let state={
+let state = {
     // 列表数据
-    specsList:[],
+    specsList: [],
     // 数据总数
-    total:0,
+    total: 0,
     // 当前页码
-    page:1,
+    page: 1,
     // 每一页的条数
-    size:2
+    size: 2
 
 }
 // 方法
-let mutations={
+let mutations = {
     // 获取列表
-    changeSpecsList(state,arr){
-        state.specsList=arr
+    changeSpecsList(state, arr) {
+        state.specsList = arr
     },
     // 获取总数
-    getTotall(state,num){
-        state.total=num
+    changeTotal(state, num) {
+        state.total = num
     },
-    // 页码改变
-    changePage(state,pageNum){
-        state.page=pageNum
+    // 点击页码 发生改变
+    changePage(state, pageNum) {
+        state.page = pageNum
     }
 
 }
 // 修改state中的数据
-let getters={
-    specsList(state){
+let getters = {
+    // 列表数据
+    specsList(state) {
         return state.specsList
     },
-    total(state){
+    // 总数
+    total(state) {
         return state.total
     },
-    size(state){
+    // 每一页的条数
+    size(state) {
         return state.size
     }
 }
 // 处理异步 、处理逻辑
-let actions={
+let actions = {
     // 一进页面就获取列表数据
-    reqList(context){
-        reqSpecsList().then(res=>{
-            if(res.data.code==200){
-                // ---------------------------
+    reqList(context,bool) {
+        //商品规格是要分页的，商品管理，是不要分页的。所以多给一个参数，bool.
+        //bool是true,就要全部；否则，就做分页
+        let params = bool ? {} : { page: context.state.page, size: context.state.size }
+
+        // 请求列表数据
+        reqSpecsList(params).then(res => {
+            if (res.data.code == 200) {
+                //删除的是最后一页的最后一条
+                if (res.data.list.length === 0 && context.state.page > 1) {
+                    context.commit("changePage", context.state.page - 1)
+                    context.dispatch("reqList")
+                    return;
+                }
+
+                //处理列表逻辑
+                let list = res.data.list
+                list.forEach(item => {
+                    item.attrs = JSON.parse(item.attrs)
+                })
+                //修改list
+                context.commit("changeSpecsList", list)
             }
         })
+
+    },
+    //获取总数
+    reqTotal(context){
+        reqSpecsTotal().then(res=>{
+            if(res.data.code==200){
+                context.commit("changeTotal",res.data.list[0].total)
+            }
+        })
+    },
+    //页码改变
+    changePage(context,num){
+        //修改页码
+        context.commit("changePage",num)
+        //重新请求list
+        context.dispatch("reqList")
     }
 
 }
 
 // 导出
-export default{
+export default {
     state,
     mutations,
     getters,
     actions,
     // 命名空间 是否使用原来的名字
-    namespaced:true
+    namespaced: true
 }

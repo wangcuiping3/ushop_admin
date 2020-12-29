@@ -128,7 +128,7 @@ export const reqRoleUpdate = (user) => {
         data: qs.stringify(user)
     })
 }
-/* ------------------- 管理员管理 ----------------- */
+/* ----------------------------- 管理员管理 -------------------------- */
 // 管理员添加 发送数据
 export const reqManageAdd = (user) => {
     return axios({
@@ -282,7 +282,54 @@ export const reqSpecsDel = (obj) => {
 }
 
 /* ------------------------------------- 商品管理 --------------------------- */
-
+// 添加 发送数据
+export const reqgoodsAdd = (user) => {
+    return axios({
+        url: baseUrl + "/api/goodsadd",
+        method: "post",
+        data: dataToFormData(user)
+    })
+}
+//  获取总数（用于计算分页）
+export const reqgoodsTotal = () => {
+    return axios({
+        url: baseUrl + "/api/goodscount",
+        method: "get"
+    })
+}
+//  获取列表（分页）
+// {size查询条数,page页码数,fid一级分类,idsid二级分类id}
+export const reqgoodsList = (obj) => {
+    return axios({
+        url: baseUrl + "/api/goodslist",
+        method: "get",
+        params: obj
+    })
+}
+//  列表点编辑,获取一条数据展示{id:商品编号}
+export const reqgoodsEdit = (obj) => {
+    return axios({
+        url: baseUrl + "/api/goodsinfo",
+        method: "get",
+        params: obj
+    })
+}
+// 修改  {id:"必填"...}
+export const reqgoodsUpdate = (user) => {
+    return axios({
+        url: baseUrl + "/api/goodsedit",
+        method: "post",
+        data: dataToFormData(user)
+    })
+}
+//  列表删除 {id:商品编号}
+export const reqgoodsDel = (obj) => {
+    return axios({
+        url: baseUrl + "/api/goodsdelete",
+        method: "post",
+        data: qs.stringify(obj)
+    })
+}
 
 /* ------------------------------------- 会员管理 --------------------------- */
 
@@ -356,4 +403,4 @@ export const reqBannerUpdate = (user) => {
 }
 
 
-/* ------------------- 限时秒杀管理 ----------------- */
+/* ---------------------------------- 限时秒杀管理 --------------------------- */

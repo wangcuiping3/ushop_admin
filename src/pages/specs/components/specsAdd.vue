@@ -55,13 +55,14 @@
         <el-button type="primary" v-if="info.isAdd" @click="add"
           >添 加</el-button
         >
-        <el-button type="primary" v-else @click="updata">修 改</el-button>
+        <el-button type="primary" v-else @click="update">修 改</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { mapActions, mapGetters } from "vuex";
 import { reqSpecsAdd, reqSpecsEdit, reqSpecsUpdate } from "../../../utils/http";
 import { successAlert } from "../../../utils/myAlert";
 
@@ -82,7 +83,15 @@ export default {
       ],
     };
   },
+  computed: {
+    ...mapGetters({})
+  },
+    
   methods: {
+    ...mapActions({
+      reqList: "specs/reqList",
+      reqTotal: "specs/reqTotal"
+    }),
     // 点击取消按钮 添加弹框消失
     cancel() {
       // 如果点的是"编辑"里的取消按钮,则清空数据;
@@ -125,8 +134,9 @@ export default {
           this.empty();
           //   add页面隐藏
           this.cancel();
-          //通知父组件,刷新页面
-          this.$emit("init");
+          //通知父组件,刷新页面,重新获取总数
+          this.reqList()
+          this.reqTotal()
         }
       });
     },
@@ -143,7 +153,8 @@ export default {
         }
       });
     },
-    updata() {
+    // 修改按钮
+    update() {
 
       reqSpecsUpdate(this.user).then((res) => {
         // 弹成功消息
@@ -152,12 +163,11 @@ export default {
         this.cancel();
         // 数据清空
         this.empty();
-        // 通知父组件 刷新页面
-        this.$emit("init");
+        // 刷新页面
+        this.reqList()
       });
     },
   },
-  mounted() {},
 };
 </script>
 
