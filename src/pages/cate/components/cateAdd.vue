@@ -61,6 +61,7 @@
 </template>
 
 <script>
+import { mapActions, mapGetters } from "vuex";
 import {
   reqCateAdd,
   reqCateEdit,
@@ -71,7 +72,7 @@ import { successAlert,errorAlert } from "../../../utils/myAlert";
 import path from "path";
 
 export default {
-  props: ["info", "cateList"],
+  props: ["info"],
 
   data() {
     return {
@@ -86,7 +87,17 @@ export default {
       imageUrl: "",
     };
   },
+  // 状态层列表数据
+  computed:{
+    ...mapGetters({
+      cateList:"cate/cateList"
+    })
+  },
   methods: {
+    ...mapActions({
+      // 状态层 方法
+    reqCateList:"cate/reqList",
+    }),
     // 点击取消按钮 添加弹框消失
     cancel() {
       // 如果点的是"编辑"里的取消按钮,则清空数据;
@@ -139,8 +150,8 @@ export default {
           this.empty();
           //   add页面隐藏
           this.cancel();
-          //通知父组件,刷新页面
-          this.$emit("init");
+          //刷新页面
+          this.reqCateList()
         }
       });
     },
@@ -165,8 +176,8 @@ export default {
         this.cancel();
         // 数据清空
         this.empty();
-        // 通知父组件 刷新页面
-        this.$emit("init");
+        // 刷新页面
+        this.reqCateList()
       });
     },
   },

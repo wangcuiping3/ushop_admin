@@ -283,7 +283,7 @@ export const reqSpecsDel = (obj) => {
 
 /* ------------------------------------- 商品管理 --------------------------- */
 // 添加 发送数据
-export const reqgoodsAdd = (user) => {
+export const reqGoodsAdd = (user) => {
     return axios({
         url: baseUrl + "/api/goodsadd",
         method: "post",
@@ -291,7 +291,7 @@ export const reqgoodsAdd = (user) => {
     })
 }
 //  获取总数（用于计算分页）
-export const reqgoodsTotal = () => {
+export const reqGoodsTotal = () => {
     return axios({
         url: baseUrl + "/api/goodscount",
         method: "get"
@@ -299,7 +299,7 @@ export const reqgoodsTotal = () => {
 }
 //  获取列表（分页）
 // {size查询条数,page页码数,fid一级分类,idsid二级分类id}
-export const reqgoodsList = (obj) => {
+export const reqGoodsList = (obj) => {
     return axios({
         url: baseUrl + "/api/goodslist",
         method: "get",
@@ -307,7 +307,7 @@ export const reqgoodsList = (obj) => {
     })
 }
 //  列表点编辑,获取一条数据展示{id:商品编号}
-export const reqgoodsEdit = (obj) => {
+export const reqGoodsEdit = (obj) => {
     return axios({
         url: baseUrl + "/api/goodsinfo",
         method: "get",
@@ -315,7 +315,7 @@ export const reqgoodsEdit = (obj) => {
     })
 }
 // 修改  {id:"必填"...}
-export const reqgoodsUpdate = (user) => {
+export const reqGoodsUpdate = (user) => {
     return axios({
         url: baseUrl + "/api/goodsedit",
         method: "post",
@@ -323,7 +323,7 @@ export const reqgoodsUpdate = (user) => {
     })
 }
 //  列表删除 {id:商品编号}
-export const reqgoodsDel = (obj) => {
+export const reqGoodsDel = (obj) => {
     return axios({
         url: baseUrl + "/api/goodsdelete",
         method: "post",

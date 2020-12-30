@@ -67,7 +67,7 @@ import { reqSpecsAdd, reqSpecsEdit, reqSpecsUpdate } from "../../../utils/http";
 import { successAlert } from "../../../utils/myAlert";
 
 export default {
-  props: ["info", "specsList"],
+  props: ["info"],
 
   data() {
     return {
@@ -79,18 +79,18 @@ export default {
       },
       // 初始化新增规格属性的值
       attrsArr: [
-        { value: "" }//输入框的值value
+        { value: "" }, //输入框的值value
       ],
     };
   },
   computed: {
-    ...mapGetters({})
+    ...mapGetters({}),
   },
-    
+
   methods: {
     ...mapActions({
       reqList: "specs/reqList",
-      reqTotal: "specs/reqTotal"
+      reqTotal: "specs/reqTotal",
     }),
     // 点击取消按钮 添加弹框消失
     cancel() {
@@ -109,9 +109,9 @@ export default {
       };
 
       // 规格属性数据 清空
-      this.attrsArr= [
-        { value: "" } //输入框的值value
-      ]
+      this.attrsArr = [
+        { value: "" }, //输入框的值value
+      ];
     },
     // 点击"新增规格属性"按钮
     addAttrs() {
@@ -121,23 +121,41 @@ export default {
     delAddAttrs(index) {
       this.attrsArr.splice(index, 1);
     },
+    // 封装的add页面数据验证函数
+    checkProps() {
+      return new Promise((resolve) => {
+        if (this.user.specsname === "") {
+          erroralert("规格名称不能为空");
+          return;
+        }
+        if (this.attrsArr.some((item) => item.value === "")) {
+          erroralert("请输入所有的规格属性");
+          return;
+        }
+        resolve();
+      });
+    },
     //  添加了
     add() {
-      // 添加按钮之前,map遍历 赋值; 拿到的是数组, 再转为字符串数组
-      this.user.attrs=JSON.stringify(this.attrsArr.map((item)=>item.value));
+      this.checkProps().then(() => {
+        // 添加按钮之前,map遍历 赋值; 拿到的是数组, 再转为字符串数组
+        this.user.attrs = JSON.stringify(
+          this.attrsArr.map((item) => item.value)
+        );
 
-      reqSpecsAdd(this.user).then((res) => {
-        if (res.data.code == 200) {
-          //   弹成功的消息
-          successAlert(res.data.msg);
-          //   清空数据
-          this.empty();
-          //   add页面隐藏
-          this.cancel();
-          //通知父组件,刷新页面,重新获取总数
-          this.reqList()
-          this.reqTotal()
-        }
+        reqSpecsAdd(this.user).then((res) => {
+          if (res.data.code == 200) {
+            //   弹成功的消息
+            successAlert(res.data.msg);
+            //   清空数据
+            this.empty();
+            //   add页面隐藏
+            this.cancel();
+            //通知父组件,刷新页面,重新获取总数
+            this.reqList();
+            this.reqTotal();
+          }
+        });
       });
     },
     // 编辑操作,接收父组件传过来的getOne
@@ -147,24 +165,29 @@ export default {
           // 赋值
           this.user = res.data.list[0];
           // 规格属性 先将字符串数组转成数组
-          this.user.attrs=JSON.parse(this.user.attrs)
+          this.user.attrs = JSON.parse(this.user.attrs);
           // 再将数组 遍历到attrsArr展示
-          this.attrsArr=this.user.attrs.map(item=>({value:item}))
+          this.attrsArr = this.user.attrs.map((item) => ({ value: item }));
         }
       });
     },
     // 修改按钮
     update() {
 
-      reqSpecsUpdate(this.user).then((res) => {
-        // 弹成功消息
-        successAlert(res.data.msg);
-        // 页面隐藏
-        this.cancel();
-        // 数据清空
-        this.empty();
-        // 刷新页面
-        this.reqList()
+      this.checkProps().then(() => {
+        // 请求之前,处理attrs数据
+        this.user.attrs = JSON.stringify(this.attrsArr.map(item => item.value));
+
+        reqSpecsUpdate(this.user).then((res) => {
+          // 弹成功消息
+          successAlert(res.data.msg);
+          // 页面隐藏
+          this.cancel();
+          // 数据清空
+          this.empty();
+          // 刷新页面
+          this.reqList();
+        });
       });
     },
   },

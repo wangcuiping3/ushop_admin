@@ -3,19 +3,18 @@
     <!-- 商品管理 添加 -->
     <!-- @opened="openedAdd" 富文本编辑器什么时候创建 -->
     <el-dialog
-      :title="info.isAdd ? '规格添加' : '规格修改'"
+      :title="info.isAdd ? '商品添加' : '商品修改'"
       :visible.sync="info.isshow"
       @closed="cancel"
       @opened="openedAdd"
     >
       <el-form :model="user">
         <el-form-item label="一级分类" label-width="100px">
-          <el-select v-model="user.first_cateid">
+          <el-select v-model="user.first_cateid" @change="firstCateChange">
             <el-option label="请选择" value disabled></el-option>
-            <el-option label="顶级分类" :value="0"></el-option>
             <!-- 循环遍历""展示内容 -->
             <el-option
-              v-for="item in specsList"
+              v-for="item in cateList"
               :key="item.id"
               :value="item.id"
               :label="item.catename"
@@ -25,10 +24,9 @@
         <el-form-item label="二级分类" label-width="100px">
           <el-select v-model="user.second_cateid">
             <el-option label="请选择" value disabled></el-option>
-            <el-option label="顶级分类" :value="0"></el-option>
             <!-- 循环遍历""展示内容 -->
             <el-option
-              v-for="item in specsList"
+              v-for="item in secondCateList"
               :key="item.id"
               :value="item.id"
               :label="item.catename"
@@ -46,7 +44,7 @@
         </el-form-item>
         <!-- 图片 -->
         <!-- v-if="user.pid!==0" 图片一般用于二级分类-->
-        <el-form-item label="图片" label-width="100px" v-if="user.pid !== 0">
+        <el-form-item label="图片" label-width="100px">
           <el-upload
             class="avatar-uploader"
             action="#"
@@ -58,31 +56,29 @@
           </el-upload>
         </el-form-item>
 
-         {{user}}
+        {{ user }}
 
         <el-form-item label="商品规格" label-width="100px">
-          <el-select v-model="user.specsid">
+          <el-select v-model="user.specsid" @change="specsidChange">
             <el-option label="请选择" value disabled></el-option>
-            <el-option label="顶级分类" :value="0"></el-option>
             <!-- 循环遍历""展示内容 -->
             <el-option
               v-for="item in specsList"
               :key="item.id"
               :value="item.id"
-              :label="item.catename"
+              :label="item.specsname"
             ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="规格属性" label-width="100px">
           <el-select v-model="user.specsattr">
             <el-option label="请选择" value disabled></el-option>
-            <el-option label="顶级分类" :value="0"></el-option>
             <!-- 循环遍历""展示内容 -->
             <el-option
-              v-for="item in specsList"
-              :key="item.id"
-              :value="item.id"
-              :label="item.catename"
+              v-for="item in specsAttrsShow"
+              :key="item"
+              :value="item"
+              :label="item"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -125,13 +121,19 @@
 <script>
 // 引入富文本编辑器
 import E from "wangeditor";
+
 import { mapActions, mapGetters } from "vuex";
-import { reqSpecsAdd, reqSpecsEdit, reqSpecsUpdate } from "../../../utils/http";
-import { successAlert } from "../../../utils/myAlert";
+import {
+  reqCateList,
+  reqGoodsAdd,
+  reqGoodsEdit,
+  reqGoodsUpdate,
+} from "../../../utils/http";
+import { successAlert, errorAlert } from "../../../utils/myAlert";
 // 引入path模块
 import path from "path";
 export default {
-  props: ["info", "specsList"],
+  props: ["info"],
 
   data() {
     return {
@@ -141,32 +143,75 @@ export default {
         second_cateid: "",
         goodsname: "",
         price: "",
-        market_price:"",
-        img: "",
+        market_price: "",
+        img: null,
         description: "",
         specsid: "",
-        specsattr: "",
-        isnew: "",
-        ishot: "",
-        status: 1
+        specsattr: [],
+        isnew: 1,
+        ishot: 1,
+        status: 1,
       },
-      // 初始化新增规格属性的值
-      attrsArr: [
-        { value: "" }, //输入框的值value
-      ],
-      // 图片的url地址,展示
+      // 初始化图片的url地址,展示
       imageUrl: "",
+      // 二级分类列表数据
+      secondCateList: [],
+      // 规格属性的展示列表
+      specsAttrsShow: [],
     };
   },
+  // 状态层
   computed: {
-    ...mapGetters({}),
+    ...mapGetters({
+      //  分类列表数据
+      cateList: "cate/cateList",
+      // 商品规格数据
+      specsList: "specs/specsList",
+    }),
   },
 
   methods: {
     ...mapActions({
-      reqList: "goods/reqList",
+      reqCateList: "cate/reqList",
+      reqSpecsList: "specs/reqList",
+      reqGoodsList: "goods/reqList",
       reqTotal: "goods/reqTotal",
     }),
+    // --------------------一级分类 、二级分类-----------------
+    // 点击选中"一级分类"数据,"二级分类"展示对应数据
+    firstCateChange() {
+      // 先把二级分类数据清空
+      this.secondCateList = "";
+
+      // 展示二级分类
+      this.getSecondCate();
+    },
+    // 获取二级分类数据
+    getSecondCate() {
+      // 二级分类的pid对应的就是一级分类的id(就是本页的first_cateid)
+      reqCateList({ pid: this.user.first_cateid }).then((res) => {
+        if (res.data.code == 200) {
+          this.secondCateList = res.data.list;
+        }
+      });
+    },
+    //---------------------- 商品规格、规格属性-------------------
+    // 当点击"商品规格"的数据,"规格属性"展示对应的
+    specsidChange() {
+      // 先把规格属性的数据清空
+      this.specsAttrsShow = "";
+      // 展示"规格属性"数据,调用
+      this.getSpecsAttrsShow();
+    },
+
+    // 获取规格属性的列表展示的数据
+    getSpecsAttrsShow() {
+      // 选中的"商品规格"是user.specsid,"规格属性"得是specsList中id与user.specsid一样的那条数据的attrs
+      let obj = this.specsList.find((item) => item.id == this.user.specsid);
+      // 如果找到了, 就返回对应那一项的规格属性(attrs),否则undefined,则做[]处理,然后赋值
+      this.specsAttrsShow = obj ? obj.attrs : [];
+    },
+
     // 点击取消按钮 添加弹框消失
     cancel() {
       // 如果点的是"编辑"里的取消按钮,则清空数据;
@@ -182,17 +227,19 @@ export default {
         second_cateid: "",
         goodsname: "",
         price: "",
-        market_price:"",
-        img: "",
+        market_price: "",
+        img: null,
         description: "",
         specsid: "",
-        specsattr: "",
-        isnew: "",
-        ishot: "",
-        status: 1
+        specsattr: [],
+        isnew: 1,
+        ishot: 1,
+        status: 1,
       };
       // 图片地址清空
-      this.imageUrl=""
+      this.imageUrl = "";
+      // 规格属性 清空
+      this.specsAttrsShow = [];
     },
     // 图片
     changeImg(ev) {
@@ -217,49 +264,121 @@ export default {
       // 将图片文件 赋值给img
       this.user.img = file;
     },
+
+    //封装的add页面的数据验证
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.first_cateid === "") {
+          errorAlert("一级分类不能为空");
+          return;
+        }
+
+        if (this.user.second_cateid === "") {
+          errorAlert("二级分类不能为空");
+          return;
+        }
+        if (this.user.goodsname === "") {
+          errorAlert("商品名称不能为空");
+          return;
+        }
+
+        if (this.user.price === "") {
+          errorAlert("商品价格不能为空");
+          return;
+        }
+
+        if (this.user.market_price === "") {
+          errorAlert("商品市场价格不能为空");
+          return;
+        }
+
+        if (!this.user.img) {
+          errorAlert("请上传图片");
+          return;
+        }
+        if (this.user.specsid === "") {
+          errorAlert("商品规格不能为空");
+          return;
+        }
+
+        if (this.user.specsattr.length === 0) {
+          errorAlert("请选择规格属性");
+          return;
+        }
+        if (this.editor.txt.html() == "") {
+          errorAlert("请输入商品描述");
+          return;
+        }
+        resolve();
+      });
+    },
     //  添加了
     add() {
-      // 添加按钮之前,map遍历 赋值; 拿到的是数组, 再转为字符串数组
-      this.user.attrs = JSON.stringify(this.attrsArr.map((item) => item.value));
+      this.checkProps().then(() => {
+        // 请求之前取出富文本编辑器的内容  赋值给description
+        this.user.description = this.editor.txt.html();
+        // 由于后端要的specsattr是数组字符串，前端需要是数组，所以要拷贝、处理一下，再发送；但是由于有对象（img）,所以不能使用JSON.parse(JSON.stringify())拷贝，需要使用...
+        let data = {
+          ...this.user,
+          specsattr: JSON.stringify(this.user.specsattr),
+        };
 
-      reqSpecsAdd(this.user).then((res) => {
-        if (res.data.code == 200) {
-          //   弹成功的消息
-          successAlert(res.data.msg);
-          //   清空数据
-          this.empty();
-          //   add页面隐藏
-          this.cancel();
-          //通知父组件,刷新页面,重新获取总数
-          this.reqList();
-          this.reqTotal();
-        }
+        reqGoodsAdd(data).then((res) => {
+          if (res.data.code == 200) {
+            successAlert(res.data.msg);
+            this.empty();
+            this.cancel();
+            //通知父组件,刷新页面,重新获取总数
+            this.reqGoodsList();
+            this.reqTotal();
+          }
+        });
       });
     },
     // 编辑操作,接收父组件传过来的getOne
     getOne(id) {
-      reqSpecsEdit({ id: id }).then((res) => {
+      reqGoodsEdit({ id: id }).then((res) => {
         if (res.data.code == 200) {
           // 赋值
-          this.user = res.data.list[0];
-          // 规格属性 先将字符串数组转成数组
-          this.user.attrs = JSON.parse(this.user.attrs);
-          //处理图片
+          this.user = res.data.list;
+          // 展示二级分类数据 调用
+          this.getSecondCate();
+          // 图片
           this.imageUrl = this.$pre + this.user.img;
+          // 展示规格属性数据
+          this.getSpecsAttrsShow();
+          //规格属性选中的list
+          this.user.specsattr = JSON.parse(this.user.specsattr);
+          //补id
+          this.user.id = id;
+          // 将description的数据赋值给富文本编辑器
+          if (this.editor) {
+            this.editor.txt.html(this.user.description);
+          }
         }
       });
     },
     // 修改按钮
     update() {
-      reqSpecsUpdate(this.user).then((res) => {
-        // 弹成功消息
-        successAlert(res.data.msg);
-        // 页面隐藏
-        this.cancel();
-        // 数据清空
-        this.empty();
-        // 刷新页面
-        this.reqList();
+      this.checkProps().then(() => {
+        //取出富文本编辑器的内容，赋值给user
+        this.user.description = this.editor.txt.html();
+        // specsattr数据类型处理
+        let data = {
+          ...this.user,
+          specsattr: JSON.stringify(this.user.specsattr),
+        };
+
+        reqGoodsUpdate(data).then((res) => {
+          // 弹成功消息
+          successAlert(res.data.msg);
+          // 页面隐藏
+          this.cancel();
+          // 数据清空
+          this.empty();
+          // 刷新页面
+          this.reqGoodsList();
+        });
       });
     },
 
@@ -271,6 +390,14 @@ export default {
       //赋值
       this.editor.txt.html(this.user.description);
     },
+  },
+  mounted() {
+    // 如果没有请过商品分类的数据
+    if (this.cateList.length === 0) {
+      this.reqCateList();
+    }
+    //获取商品规格的数据: bool传true,就是获取全部的数据 不分页
+    this.reqSpecsList(true);
   },
 };
 </script>

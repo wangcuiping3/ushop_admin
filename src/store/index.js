@@ -6,7 +6,9 @@ Vue.use(Vuex)
 import {actions} from "./actions"
 import {state,getters,mutations} from "./mutations"
 // 引入对应的模块文件
+import cate from "./modules/cate"
 import specs from "./modules/specs"
+import goods from "./modules/goods"
 
 // 导出
 export default new Vuex.Store({
@@ -16,6 +18,8 @@ export default new Vuex.Store({
     actions,
     modules:{
         // 注册
-        specs
+        cate,
+        specs,
+        goods
     }
 })

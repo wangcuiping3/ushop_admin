@@ -2,7 +2,7 @@
   <div>
     <!-- 商品管理 列表 -->
     <el-table
-      :data="specsList"
+      :data="goodsList"
       style="width: 100%"
       row-key="id"
       border
@@ -10,11 +10,10 @@
       :tree-props="{ children: 'children' }"
     >
       <el-table-column prop="id" label="商品编号" width="80"> </el-table-column>
-      <el-table-column prop="specsname" label="规格名称"> </el-table-column>
-      <el-table-column prop="attrs" label="商品名称"></el-table-column>
-      <el-table-column prop="attrs" label="商品价格"></el-table-column>
-      <el-table-column prop="attrs" label="市场价格"></el-table-column>
-      <el-table-column prop="attrs" label="图片">
+      <el-table-column prop="goodsname" label="商品名称"></el-table-column>
+      <el-table-column prop="price" label="商品价格"></el-table-column>
+      <el-table-column prop="market_price" label="市场价格"></el-table-column>
+      <el-table-column  label="图片">
         <template slot-scope="scope">
           <img
             v-if="scope.row.img !== 'null'"
@@ -23,16 +22,16 @@
           />
         </template>
       </el-table-column>
-      <el-table-column prop="status" label="是否新品">
-        <template slot-scope="">
-          <el-button type="primary" size="mini">是</el-button>
-          <el-button type="danger" size="mini">否</el-button>
+      <el-table-column prop="isnew" label="是否新品">
+        <template slot-scope="scope">
+          <el-button type="primary" size="mini" v-if="scope.row.isnew===1">是</el-button>
+          <el-button type="danger" size="mini" v-else>否</el-button>
         </template>
       </el-table-column>
-      <el-table-column prop="status" label="是否热卖">
-        <template slot-scope="">
-          <el-button type="danger" size="mini">是</el-button>
-          <el-button type="info" size="mini">否</el-button>
+      <el-table-column prop="ishot" label="是否热卖">
+        <template slot-scope="scope">
+          <el-button type="primary" size="mini" v-if="scope.row.ishot===1">是</el-button>
+          <el-button type="danger" size="mini" v-else>否</el-button>
         </template>
       </el-table-column>
       <el-table-column prop="status" label="状态">
@@ -65,7 +64,7 @@
 
 <script>
 import { mapActions, mapGetters } from "vuex";
-import { reqSpecsDel } from "../../../utils/http";
+import { reqGoodsDel } from "../../../utils/http";
 import { successAlert } from "../../../utils/myAlert";
 export default {
   data() {
@@ -74,27 +73,21 @@ export default {
   // mapGetters将状态层的数据成批量导入到组件的计算属性中
   computed: {
     ...mapGetters({
-      // 列表数据
-      specsList: "specs/specsList",
-      // 总数据
-      total: "specs/total",
-      // 每一页的条数
-      size: "specs/size",
+      goodsList: "goods/goodsList",
+      total: "goods/total",
+      size: "goods/size",
     }),
   },
   // mapActions将状态层的actions成批量导入到组件的methods中
   methods: {
     ...mapActions({
-      // 获取列表数据
-      reqList: "specs/reqList",
-      // 获取总数
-      reqTotal: "specs/reqTotal",
-      // 点击页码 页码改变
-      changePage: "specs/changePage",
+      reqList: "goods/reqList",
+      reqTotal: "goods/reqTotal",
+      changePage: "goods/changePage",
     }),
     // 删除按钮
     del(id) {
-      reqSpecsDel({ id: id }).then((res) => {
+      reqGoodsDel({ id: id }).then((res) => {
         if (res.data.code == 200) {
           //   弹成功消息
           successAlert(res.data.msg);
@@ -121,5 +114,9 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+img{
+  width: 80px;
+  height: 80px;
+}
 </style>

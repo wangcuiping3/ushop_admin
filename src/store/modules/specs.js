@@ -24,8 +24,8 @@ let mutations = {
         state.total = num
     },
     // 点击页码 发生改变
-    changePage(state, pageNum) {
-        state.page = pageNum
+    changePage(state, num) {
+        state.page = num
     }
 
 }
@@ -48,8 +48,7 @@ let getters = {
 let actions = {
     // 一进页面就获取列表数据
     reqList(context,bool) {
-        //商品规格是要分页的，商品管理，是不要分页的。所以多给一个参数，bool.
-        //bool是true,就要全部；否则，就做分页
+          //"商品规格"页面中的数据是要分页展示的;"商品管理"中"add"页面中的规格数据是不要分页的。用第二个参数bool区分;bool是true,就要全部数据；false，就做分页
         let params = bool ? {} : { page: context.state.page, size: context.state.size }
 
         // 请求列表数据
@@ -63,12 +62,17 @@ let actions = {
                 }
 
                 //处理列表逻辑
-                let list = res.data.list
-                list.forEach(item => {
+                let specsList = res.data.list
+
+                specsList.forEach(item => {
+                    // 判断如果属性没写 
+                    if(item.attrs==""){
+                        item.attrs="[]" 
+                    }
                     item.attrs = JSON.parse(item.attrs)
                 })
                 //修改list
-                context.commit("changeSpecsList", list)
+                context.commit("changeSpecsList", specsList)
             }
         })
 
@@ -97,6 +101,6 @@ export default {
     mutations,
     getters,
     actions,
-    // 命名空间 是否使用原来的名字
+    // 命名空间 
     namespaced: true
 }
