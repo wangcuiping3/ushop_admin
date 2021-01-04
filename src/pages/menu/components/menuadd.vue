@@ -91,7 +91,7 @@ import { indexRoutes } from "../../../router/index";
 // 引入http请求
 import { reqMenuAdd, reqMuneEdit, reqMenuUpdate } from "../../../utils/http";
 // 引入封装的弹框
-import { successAlert } from "../../../utils/myAlert";
+import { successAlert, errorAlert } from "../../../utils/myAlert";
 export default {
   props: ["info", "menuList"],
   data() {
@@ -136,20 +136,37 @@ export default {
         status: 1,
       };
     },
+    //add数据验证 封装
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.title === "") {
+          errorAlert("菜单名称不能为空");
+          return;
+        }
+        if (this.user.icon === "") {
+          errorAlert("菜单图标不能为空");
+          return;
+        }
+
+        resolve();
+      });
+    },
     // 点击添加按钮 添加菜单
     add() {
-      reqMenuAdd(this.user).then((res) => {
-        // 判断 获取成功
-        if (res.data.code === 200) {
-          //跳一条成功的弹框
-          successAlert(res.data.msg);
-          //add弹框消失 调用cancel()
-          this.cancel();
-          // user清空 调用empty
-          this.empty();
-          // 刷新列表数据 子传父
-          this.$emit("init");
-        }
+      this.checkProps().then(() => {
+        reqMenuAdd(this.user).then((res) => {
+          // 判断 获取成功
+          if (res.data.code === 200) {
+            //跳一条成功的弹框
+            successAlert(res.data.msg);
+            //add弹框消失 调用cancel()
+            this.cancel();
+            // user清空 调用empty
+            this.empty();
+            // 刷新列表数据 子传父
+            this.$emit("init");
+          }
+        });
       });
     },
     // 上级菜单pid改变, 上面是change事件
@@ -175,15 +192,17 @@ export default {
     },
     // 修改按钮
     update() {
-      reqMenuUpdate(this.user).then((res) => {
-        // 弹成功消息
-        successAlert(res.data.msg);
-        // menuadd消失
-        this.cancel();
-        // 清空弹框user数据
-        this.empty();
-        // 通知父组件刷新menulist
-        this.$emit("init");
+      this.checkProps().then(() => {
+        reqMenuUpdate(this.user).then((res) => {
+          // 弹成功消息
+          successAlert(res.data.msg);
+          // menuadd消失
+          this.cancel();
+          // 清空弹框user数据
+          this.empty();
+          // 通知父组件刷新menulist
+          this.$emit("init");
+        });
       });
     },
   },

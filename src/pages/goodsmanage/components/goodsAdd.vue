@@ -71,9 +71,9 @@
           </el-select>
         </el-form-item>
         <el-form-item label="规格属性" label-width="100px">
-          <el-select v-model="user.specsattr">
+          <el-select v-model="user.specsattr" multiple>
             <el-option label="请选择" value disabled></el-option>
-            <!-- 循环遍历""展示内容 -->
+            <!-- 循环遍历  展示内容 -->
             <el-option
               v-for="item in specsAttrsShow"
               :key="item"
@@ -181,7 +181,7 @@ export default {
     // 点击选中"一级分类"数据,"二级分类"展示对应数据
     firstCateChange() {
       // 先把二级分类数据清空
-      this.secondCateList = "";
+      this.user.second_cateid = "";
 
       // 展示二级分类
       this.getSecondCate();
@@ -236,9 +236,11 @@ export default {
         ishot: 1,
         status: 1,
       };
+
       // 图片地址清空
       this.imageUrl = "";
-      // 规格属性 清空
+      this.secondCateList = [],
+        // 规格属性 清空
       this.specsAttrsShow = [];
     },
     // 图片
@@ -265,7 +267,7 @@ export default {
       this.user.img = file;
     },
 
-    //封装的add页面的数据验证
+    //add数据验证 封装
     checkProps() {
       return new Promise((resolve, reject) => {
         if (this.user.first_cateid === "") {
@@ -312,6 +314,7 @@ export default {
         resolve();
       });
     },
+
     //  添加了
     add() {
       this.checkProps().then(() => {
@@ -322,7 +325,6 @@ export default {
           ...this.user,
           specsattr: JSON.stringify(this.user.specsattr),
         };
-
         reqGoodsAdd(data).then((res) => {
           if (res.data.code == 200) {
             successAlert(res.data.msg);
@@ -335,6 +337,7 @@ export default {
         });
       });
     },
+
     // 编辑操作,接收父组件传过来的getOne
     getOne(id) {
       reqGoodsEdit({ id: id }).then((res) => {
@@ -358,6 +361,7 @@ export default {
         }
       });
     },
+
     // 修改按钮
     update() {
       this.checkProps().then(() => {

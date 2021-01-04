@@ -26,7 +26,7 @@
         </el-form-item>
         <!-- 图片 -->
         <!-- v-if="user.pid!==0" 图片一般用于二级分类-->
-        <el-form-item label="图片" label-width="100px" v-if="user.pid!==0">
+        <el-form-item label="图片" label-width="100px" v-if="user.pid !== 0">
           <el-upload
             class="avatar-uploader"
             action="#"
@@ -62,12 +62,8 @@
 
 <script>
 import { mapActions, mapGetters } from "vuex";
-import {
-  reqCateAdd,
-  reqCateEdit,
-  reqCateUpdate,
-} from "../../../utils/http";
-import { successAlert,errorAlert } from "../../../utils/myAlert";
+import { reqCateAdd, reqCateEdit, reqCateUpdate } from "../../../utils/http";
+import { successAlert, errorAlert } from "../../../utils/myAlert";
 // 引入path模块
 import path from "path";
 
@@ -88,15 +84,15 @@ export default {
     };
   },
   // 状态层列表数据
-  computed:{
+  computed: {
     ...mapGetters({
-      cateList:"cate/cateList"
-    })
+      cateList: "cate/cateList",
+    }),
   },
   methods: {
     ...mapActions({
       // 状态层 方法
-    reqCateList:"cate/reqList",
+      reqCateList: "cate/reqList",
     }),
     // 点击取消按钮 添加弹框消失
     cancel() {
@@ -115,7 +111,7 @@ export default {
         status: 1, //状态  1正常2禁用 number
       };
       // 图片地址清空
-      this.imageUrl=""
+      this.imageUrl = "";
     },
     //ele-ui上传文件
     changeImg(ev) {
@@ -131,7 +127,7 @@ export default {
       //限制文件类型--后缀名
       let extname = path.extname(file.name);
       let arr = [".png", ".gif", ".jpg", ".jpeg"];
-      if (!arr.some(item => item === extname)) {
+      if (!arr.some((item) => item === extname)) {
         errorAlert("请上传图片类型的文件");
         return;
       }
@@ -140,19 +136,41 @@ export default {
       // 将图片文件 赋值给img
       this.user.img = file;
     },
+    //add数据验证 封装
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.pid === "") {
+          errorAlert("上级分类不能为空");
+          return;
+        }
+
+        if (this.user.catename === "") {
+          errorAlert("分类名称不能为空");
+          return;
+        }
+        if (!this.user.img) {
+          errorAlert("请上传图片");
+          return;
+        }
+
+        resolve();
+      });
+    },
     //   添加了
     add() {
-      reqCateAdd(this.user).then((res) => {
-        if (res.data.code == 200) {
-          //   弹成功的消息
-          successAlert(res.data.msg);
-          //   清空数据
-          this.empty();
-          //   add页面隐藏
-          this.cancel();
-          //刷新页面
-          this.reqCateList()
-        }
+      this.checkProps().then(() => {
+        reqCateAdd(this.user).then((res) => {
+          if (res.data.code == 200) {
+            //   弹成功的消息
+            successAlert(res.data.msg);
+            //   清空数据
+            this.empty();
+            //   add页面隐藏
+            this.cancel();
+            //刷新页面
+            this.reqCateList();
+          }
+        });
       });
     },
     // 编辑操作,接收父组件传过来的getOne
@@ -169,19 +187,20 @@ export default {
       });
     },
     updata() {
-      reqCateUpdate(this.user).then((res) => {
-        // 弹成功消息
-        successAlert(res.data.msg);
-        // 页面隐藏
-        this.cancel();
-        // 数据清空
-        this.empty();
-        // 刷新页面
-        this.reqCateList()
+      this.checkProps().then(() => {
+        reqCateUpdate(this.user).then((res) => {
+          // 弹成功消息
+          successAlert(res.data.msg);
+          // 页面隐藏
+          this.cancel();
+          // 数据清空
+          this.empty();
+          // 刷新页面
+          this.reqCateList();
+        });
       });
     },
   },
-
 };
 </script>
 

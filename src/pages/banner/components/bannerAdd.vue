@@ -14,7 +14,7 @@
         <!-- 图片 -->
         <!-- v-if="user.pid!==0" 图片一般用于二级分类-->
         <el-form-item label="图片" label-width="100px" v-if="user.pid !== 0">
-          <!-- <el-upload
+          <el-upload
             class="avatar-uploader"
             action="#"
             :show-file-list="false"
@@ -22,20 +22,7 @@
           >
             <img v-if="imageUrl" :src="imageUrl" class="avatar" />
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-          </el-upload> -->
-
-          <!-- 轮播图2 -->
-          <el-upload
-            action="https://jsonplaceholder.typicode.com/posts/"
-            list-type="picture-card"
-            :on-preview="changeImg"
-            
-          >
-            <i class="el-icon-plus"></i>
           </el-upload>
-          <el-dialog :visible.sync="dialogVisible">
-            <img width="100%" :src="imageUrl" alt="" />
-          </el-dialog>
         </el-form-item>
         <!-- 状态 -->
         <el-form-item label="状态" label-width="100px">
@@ -87,6 +74,7 @@ export default {
       dialogVisible: false,
     };
   },
+
   methods: {
     // 点击取消按钮 添加弹框消失
     cancel() {
@@ -132,19 +120,37 @@ export default {
       // 下一个添加图片文件的框框出现
       this.dialogVisible = true;
     },
+    //add数据验证 封装
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.title === "") {
+          errorAlert("标题不能为空");
+          return;
+        }
+
+        if (!this.user.img) {
+          errorAlert("请上传图片");
+          return;
+        }
+        resolve();
+      });
+    },
+
     //   添加了
     add() {
-      reqBannerAdd(this.user).then((res) => {
-        if (res.data.code == 200) {
-          //   弹成功的消息
-          successAlert(res.data.msg);
-          //   清空数据
-          this.empty();
-          //   add页面隐藏
-          this.cancel();
-          //通知父组件,刷新页面
-          this.$emit("init");
-        }
+      this.checkProps().then(() => {
+        reqBannerAdd(this.user).then((res) => {
+          if (res.data.code == 200) {
+            //   弹成功的消息
+            successAlert(res.data.msg);
+            //   清空数据
+            this.empty();
+            //   add页面隐藏
+            this.cancel();
+            //通知父组件,刷新页面
+            this.$emit("init");
+          }
+        });
       });
     },
     // 编辑操作,接收父组件传过来的getOne
@@ -161,15 +167,17 @@ export default {
       });
     },
     updata() {
-      reqBannerUpdate(this.user).then((res) => {
-        // 弹成功消息
-        successAlert(res.data.msg);
-        // 页面隐藏
-        this.cancel();
-        // 数据清空
-        this.empty();
-        // 通知父组件 刷新页面
-        this.$emit("init");
+      this.checkProps().then(() => {
+        reqBannerUpdate(this.user).then((res) => {
+          // 弹成功消息
+          successAlert(res.data.msg);
+          // 页面隐藏
+          this.cancel();
+          // 数据清空
+          this.empty();
+          // 通知父组件 刷新页面
+          this.$emit("init");
+        });
       });
     },
 

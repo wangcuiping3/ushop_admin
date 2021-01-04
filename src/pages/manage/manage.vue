@@ -48,7 +48,7 @@ export default {
       // 数据总数量
       total: 0,
       // 一页展示的数据
-      pageSize: 3,
+      pageSize: 2,
       // 当前页码
       page: 1,
     };

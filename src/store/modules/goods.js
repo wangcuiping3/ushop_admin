@@ -43,6 +43,7 @@ let actions={
             if(res.data.code==200){
                 //删除的是最后一页的最后一条
                 if(res.data.list.length===0&&context.state.page>1){
+                    console.log("==========================");
                     context.commit("changePage",context.state.page-1)
                     context.dispatch("reqList")
                     return;

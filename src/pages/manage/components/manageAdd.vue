@@ -1,7 +1,11 @@
 <template>
   <div>
     <!-- 管理员管理添加 -->
-    <el-dialog :title="info.isAdd?'用户添加':'用户修改'" :visible.sync="info.isshow" @closed="cancel">
+    <el-dialog
+      :title="info.isAdd ? '用户添加' : '用户修改'"
+      :visible.sync="info.isshow"
+      @closed="cancel"
+    >
       <el-form :model="user">
         {{ user }}
         <el-form-item label="所属角色" label-width="100px">
@@ -36,7 +40,9 @@
       <!-- 按钮 -->
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" v-if="info.isAdd" @click="add">添 加</el-button>
+        <el-button type="primary" v-if="info.isAdd" @click="add"
+          >添 加</el-button
+        >
         <el-button type="primary" v-else @click="updata">修 改</el-button>
       </div>
     </el-dialog>
@@ -44,11 +50,16 @@
 </template>
 
 <script>
-import { reqRoleList, reqManageAdd,reqManageEdit,reqManageUpdate } from "../../../utils/http";
-import { successAlert } from "../../../utils/myAlert";
+import {
+  reqRoleList,
+  reqManageAdd,
+  reqManageEdit,
+  reqManageUpdate,
+} from "../../../utils/http";
+import { successAlert,errorAlert } from "../../../utils/myAlert";
 
 export default {
-  props: ["info","manageList"],
+  props: ["info", "manageList"],
 
   data() {
     return {
@@ -81,44 +92,68 @@ export default {
         status: 1,
       };
     },
+    //add数据验证 封装
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.roleid === "") {
+          errorAlert("所属角色不能为空");
+          return;
+        }
+
+        if (this.user.username === "") {
+          errorAlert("用户名不能为空");
+          return;
+        }
+        if (this.user.password === "") {
+          errorAlert("密码不能为空");
+          return;
+        }
+        resolve();
+      });
+    },
+
     //   添加了
     add() {
-      reqManageAdd(this.user).then((res) => {
-        if (res.data.code == 200) {
-          //   弹成功的消息
-          successAlert(res.data.msg);
-          //   清空数据
-          this.empty();
-          //   add页面隐藏
-          this.cancel();
-          //通知父组件,刷新页面
-          this.$emit("init")
-        }
+      this.checkProps().then(() => {
+        reqManageAdd(this.user).then((res) => {
+          if (res.data.code == 200) {
+            //   弹成功的消息
+            successAlert(res.data.msg);
+            //   清空数据
+            this.empty();
+            //   add页面隐藏
+            this.cancel();
+            //通知父组件,刷新页面
+            this.$emit("init");
+          }
+        });
       });
     },
     // 编辑操作,接收父组件传过来的getOne
-    getOne(uid){
-        reqManageEdit({uid:uid}).then(res=>{
-            if(res.data.code==200){
-                // 赋值
-                this.user=res.data.list
-                // 将密码置为空
-                this.user.password = ""
-            }
-        })
+    getOne(uid) {
+      reqManageEdit({ uid: uid }).then((res) => {
+        if (res.data.code == 200) {
+          // 赋值
+          this.user = res.data.list;
+          // 将密码置为空
+          this.user.password = "";
+        }
+      });
     },
-    updata(){
-        reqManageUpdate(this.user).then(res=>{
-            // 弹成功消息
-            successAlert(res.data.msg)
-            // 页面隐藏
-            this.cancel()
-            // 数据清空
-            this.empty()
-            // 通知父组件 刷新页面
-            this.$emit ("init")
-        })
-    }
+    updata() {
+      this.checkProps().then(() => {
+        reqManageUpdate(this.user).then((res) => {
+          // 弹成功消息
+          successAlert(res.data.msg);
+          // 页面隐藏
+          this.cancel();
+          // 数据清空
+          this.empty();
+          // 通知父组件 刷新页面
+          this.$emit("init");
+        });
+      });
+    },
   },
   mounted() {
     //   页面一加载就获取角色列表数据,展示到"所属角色"

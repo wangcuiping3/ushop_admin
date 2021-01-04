@@ -73,7 +73,5 @@ export default {
 </script>
 
 <style scoped>
-.menu {
-  padding-top: 20px;
-}
+
 </style>

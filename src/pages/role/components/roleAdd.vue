@@ -38,7 +38,7 @@
         </el-form-item>
       </el-form>
       <!-- 验证数据 -->
-      <!-- {{ user }} -->
+      {{ user }}
       <!-- 按钮 -->
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
@@ -59,7 +59,8 @@ import {
   reqRoleEdit,
   reqRoleUpdate,
 } from "../../../utils/http";
-import { successAlert } from "../../../utils/myAlert";
+import { mapActions, mapGetters } from "vuex";
+import { successAlert ,errorAlert} from "../../../utils/myAlert";
 export default {
   // 接收父组件传过来的值
   props: ["info"],
@@ -82,9 +83,18 @@ export default {
       },
     };
   },
-
+  // 用户信息
+  computed: {
+    ...mapGetters({
+      userInfo: "userInfo",
+    }),
+  },
   // 函数
   methods: {
+    // 用户信息修改
+    ...mapActions({
+      changeUser: "changeUser",
+    }),
     // 取消按钮 add隐藏
     cancel() {
       // 如果点的是"编辑"里的取消按钮,则清空数据;如果点的是"添加"里的取消,则不作处理
@@ -103,24 +113,36 @@ export default {
       // 清空角色权限的数据
       this.$refs.tree.setCheckedKeys([]);
     },
+    //add数据验证 封装
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.rolename === "") {
+          errorAlert("角色名称不能为空");
+          return;
+        }
+        resolve();
+      });
+    },
     // 点了添加按钮 请求数据
     add(user) {
-      // console.log(this.$refs.tree.getCheckedKeys());
-      // 先获取到选中的menus的id数组,然后保存到menus中
-      this.user.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
+      this.checkProps().then(() => {
+        // console.log(this.$refs.tree.getCheckedKeys());
+        // 先获取到选中的menus的id数组,然后保存到menus中
+        this.user.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
 
-      // 添加数据请求
-      reqRoleAdd(user).then((res) => {
-        if (res.data.code == 200) {
-          // 弹出操作成功的消息
-          successAlert(res.data.msg);
-          // 本页面隐藏
-          this.cancel();
-          // 清空数据
-          this.empty();
-          // 刷新列表数据
-          this.$emit("init");
-        }
+        // 添加数据请求
+        reqRoleAdd(user).then((res) => {
+          if (res.data.code == 200) {
+            // 弹出操作成功的消息
+            successAlert(res.data.msg);
+            // 本页面隐藏
+            this.cancel();
+            // 清空数据
+            this.empty();
+            // 刷新列表数据
+            this.$emit("init");
+          }
+        });
       });
     },
     // roleList点了编辑->role->roleAdd,获取一条数据,展示
@@ -140,20 +162,29 @@ export default {
     },
     // 点击修改按钮
     update() {
-      //先取出树形控件的数据给menus，再发请求
-      this.user.menus=JSON.stringify(this.$refs.tree.getCheckedKeys())
-      // 请求数据
-      reqRoleUpdate(this.user).then((res) => {
-        if (res.data.code === 200) {
-          // 弹成功消息
-          successAlert(res.data.msg);
-          // add页面隐藏
-          this.cancel();
-          // 清空数据
-          this.empty();
-          // 刷新页面
-          this.$emit("init");
-        }
+      this.checkProps().then(() => {
+        //先取出树形控件的数据给menus，再发请求
+        this.user.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
+        // 请求数据
+        reqRoleUpdate(this.user).then((res) => {
+          if (res.data.code === 200) {
+            // 弹成功消息
+            successAlert(res.data.msg);
+
+            //如果修改的角色权限，是当前用户所属的角色，就需要退出登录，重新登录
+            if (this.user.id == this.userInfo.roleid) {
+              this.changeUser({});
+              this.$router.push("/login");
+              return;
+            }
+            // add页面隐藏
+            this.cancel();
+            // 清空数据
+            this.empty();
+            // 刷新页面
+            this.$emit("init");
+          }
+        });
       });
     },
   },

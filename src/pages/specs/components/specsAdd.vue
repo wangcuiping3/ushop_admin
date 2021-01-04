@@ -64,7 +64,7 @@
 <script>
 import { mapActions, mapGetters } from "vuex";
 import { reqSpecsAdd, reqSpecsEdit, reqSpecsUpdate } from "../../../utils/http";
-import { successAlert } from "../../../utils/myAlert";
+import { successAlert,errorAlert } from "../../../utils/myAlert";
 
 export default {
   props: ["info"],
@@ -125,11 +125,11 @@ export default {
     checkProps() {
       return new Promise((resolve) => {
         if (this.user.specsname === "") {
-          erroralert("规格名称不能为空");
+          errorAlert("规格名称不能为空");
           return;
         }
         if (this.attrsArr.some((item) => item.value === "")) {
-          erroralert("请输入所有的规格属性");
+          errorAlert("请输入所有的规格属性");
           return;
         }
         resolve();

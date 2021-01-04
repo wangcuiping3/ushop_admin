@@ -1,6 +1,8 @@
 import axios from "axios"
 import qs from "qs"
+import store from "../store"
 import Vue from "vue"
+import router from "../router"
 // 引入封装的消息弹框
 import { errorAlert } from "../utils/myAlert"
 
@@ -12,6 +14,14 @@ Vue.prototype.$pre = "http://localhost:3000"
 // let baseUrl = ""
 // Vue.prototype.$pro = ""
 
+//请求拦截 设置请求头
+axios.interceptors.request.use(config => {
+    if (config.url !== baseUrl + "/api/userlogin") {
+        config.headers.authorization = store.state.userInfo.token
+    }
+    return config
+})
+
 // 响应拦截
 axios.interceptors.response.use(res => {
     // 统一处理数据失败的弹框
@@ -22,6 +32,13 @@ axios.interceptors.response.use(res => {
     if (!res.data.list) { //null为假 取反为真
         res.data.list = []
     }
+    //掉线处理
+    if (res.data.msg === "登录已过期或访问权限受限") {
+        //清除用户登录的信息 userInfo
+        store.dispatch("changeUser", {})
+        //跳到登录页面
+        router.push("/login")
+    }
     console.group("本次请求的地址是:" + res.config.url)
     console.log(res);
     console.groupEnd()
@@ -29,12 +46,21 @@ axios.interceptors.response.use(res => {
 })
 
 // post 带有文件，参数转换
-function dataToFormData(user){
-    let data=new FormData()
-    for(let i in user){
-        data.append(i,user[i])
+function dataToFormData(user) {
+    let data = new FormData()
+    for (let i in user) {
+        data.append(i, user[i])
     }
     return data
+}
+
+// 管理员登录 {username:用户名,password:密码}
+export const reqManageLogin = (user) => {
+    return axios({
+        url: baseUrl + "/api/userlogin",
+        method: "post",
+        data: qs.stringify(user)
+    })
 }
 
 /* ---------------------------------- 菜单管理 ------------------------------ */
@@ -177,14 +203,6 @@ export const reqManageDel = (obj) => {
         data: qs.stringify(obj)
     })
 }
-// 管理员登录 {username:用户名,password:密码}
-export const reqManageLogin = (user) => {
-    return axios({
-        url: baseUrl + "/api/userlogin",
-        method: "post",
-        data: qs.stringify(user)
-    })
-}
 
 /* --------------------------------- 商品分类管理 ----------------------------- */
 // 添加 
@@ -201,7 +219,7 @@ export const reqCateList = (p) => {
     return axios({
         url: baseUrl + "/api/catelist",
         method: "get",
-        params:p
+        params: p
     })
 }
 //  列表删除 {id:id}
@@ -372,7 +390,7 @@ export const reqBannerList = (p) => {
     return axios({
         url: baseUrl + "/api/bannerlist",
         method: "get",
-        params:p
+        params: p
     })
 }
 //  列表删除 {id:id}
@@ -402,5 +420,45 @@ export const reqBannerUpdate = (user) => {
     })
 }
 
-
 /* ---------------------------------- 限时秒杀管理 --------------------------- */
+// 添加 发送数据
+export const reqSeckillAdd = (user) => {
+    return axios({
+        url: baseUrl + "/api/seckadd",
+        method: "post",
+        data: qs.stringify(user)
+    })
+}
+
+//  获取列表
+export const reqSeckillList = (obj) => {
+    return axios({
+        url: baseUrl + "/api/secklist",
+        method: "get",
+    })
+}
+//  列表点编辑,获取一条数据展示{id:编号}
+export const reqSeckillEdit = (obj) => {
+    return axios({
+        url: baseUrl + "/api/seckinfo",
+        method: "get",
+        params: obj
+    })
+}
+// 修改 {id:"必填"}
+export const reqSeckillUpdate = (user) => {
+    return axios({
+        url: baseUrl + "/api/seckedit",
+        method: "post",
+        data: qs.stringify(user)
+    })
+}
+//  列表删除 {id:编号}
+export const reqSeckillDel = (obj) => {
+    return axios({
+        url: baseUrl + "/api/seckdelete",
+        method: "post",
+        data: qs.stringify(obj)
+    })
+}
+
